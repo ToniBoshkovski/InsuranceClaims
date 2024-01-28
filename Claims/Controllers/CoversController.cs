@@ -6,17 +6,12 @@ namespace Claims.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class CoversController : ControllerBase
+public class CoversController(CosmosClient cosmosClient, ICoversService coversService) : ControllerBase
 {
-    private readonly ICoversService _coversService;
-    private readonly Container _container;
+    private readonly ICoversService _coversService = coversService;
 
-    public CoversController(CosmosClient cosmosClient, ICoversService coversService)
-    {
-        _coversService = coversService;
-        _container = cosmosClient?.GetContainer("ClaimDb", "Cover")
+    private readonly Container _container = cosmosClient?.GetContainer("ClaimDb", "Cover")
                      ?? throw new ArgumentNullException(nameof(cosmosClient));
-    }
 
     [HttpPost]
     public async Task<IActionResult> ComputePremiumAsync(DateOnly startDate, DateOnly endDate, CoverType coverType)

@@ -1,5 +1,6 @@
 ﻿using Claims.API.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
 namespace Claims.API;
@@ -24,7 +25,12 @@ public class GlobalExceptionHandler : IExceptionHandler
             _ => (int)HttpStatusCode.InternalServerError,
         };
 
-        await httpContext.Response.WriteAsJsonAsync(exception.Message, cancellationToken);
+        var problemDetails = new ProblemDetails
+        {
+            Status = httpContext.Response.StatusCode,
+            Title = exception.Message
+        };
+        await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
         return true;
     }
