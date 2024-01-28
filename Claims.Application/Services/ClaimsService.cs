@@ -3,38 +3,26 @@ using Claims.Application.Services.Interfaces;
 
 namespace Claims.Application.Services;
 
-public class ClaimsServices : IClaimsServices
+public class ClaimsServices(ICosmosDbService cosmosDbService, IAuditer auditer) : IClaimsServices
 {
-    private readonly ICosmosDbService _cosmosDbService;
-    private readonly IAuditer _auditer;
+    private readonly ICosmosDbService _cosmosDbService = cosmosDbService;
+    private readonly IAuditer _auditer = auditer;
 
-    public ClaimsServices(ICosmosDbService cosmosDbService, IAuditer auditer)
-    {
-        _cosmosDbService = cosmosDbService;
-        _auditer = auditer;
-    }
+    public async Task<IEnumerable<Claim>> GetAsync() => await _cosmosDbService.GetAsync<Claim>();
 
-    public async Task<IEnumerable<Claim>> GetAsync()
-    {
-        return await _cosmosDbService.GetAsync<Claim>();
-    }
-
-    public Task<Claim> GetAsync(string id)
-    {
-        return _cosmosDbService.GetAsync<Claim>(id);
-    }
+    public async Task<Claim> GetAsync(string id) => await _cosmosDbService.GetAsync<Claim>(id);
 
     public async Task<Claim> CreateAsync(Claim claim)
     {
         claim.Id = Guid.NewGuid().ToString();
         await _cosmosDbService.AddItemAsync(claim);
-        _auditer.AuditClaim(claim.Id, "POST");
+        await _auditer.AuditClaim(claim.Id, "POST");
         return claim;
     }
 
-    public Task DeleteAsync(string id)
+    public async Task DeleteAsync(string id)
     {
-        _auditer.AuditClaim(id, "DELETE");
-        return _cosmosDbService.DeleteItemAsync<Claim>(id);
+        await _auditer.AuditClaim(id, "DELETE");
+        await _cosmosDbService.DeleteItemAsync<Claim>(id);
     }
 }

@@ -23,6 +23,6 @@ public class ClaimValidator : AbstractValidator<Claim>
         DateOnly dateValue = DateOnly.FromDateTime(value);
         Cover cover = await _cosmosDbService.GetAsync<Cover>(model.CoverId);
 
-        return dateValue >= cover?.StartDate && dateValue <= cover?.EndDate;
+        return cover != null && dateValue >= cover.StartDate && dateValue <= cover.EndDate;
     }
 }

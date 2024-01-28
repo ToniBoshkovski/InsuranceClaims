@@ -2,16 +2,11 @@
 
 namespace Claims.Infrastructure.Auditing;
 
-public class Auditer : IAuditer
+public class Auditer(AuditContext auditContext) : IAuditer
 {
-    private readonly AuditContext _auditContext;
+    private readonly AuditContext _auditContext = auditContext;
 
-    public Auditer(AuditContext auditContext)
-    {
-        _auditContext = auditContext;
-    }
-
-    public void AuditClaim(string id, string httpRequestType)
+    public async Task AuditClaim(string id, string httpRequestType)
     {
         var claimAudit = new ClaimAudit()
         {
@@ -20,11 +15,11 @@ public class Auditer : IAuditer
             ClaimId = id
         };
 
-        _auditContext.Add(claimAudit);
-        _auditContext.SaveChanges();
+        await _auditContext.AddAsync(claimAudit);
+        await _auditContext.SaveChangesAsync();
     }
 
-    public void AuditCover(string id, string httpRequestType)
+    public async Task AuditCover(string id, string httpRequestType)
     {
         var coverAudit = new CoverAudit()
         {
@@ -33,7 +28,7 @@ public class Auditer : IAuditer
             CoverId = id
         };
 
-        _auditContext.Add(coverAudit);
-        _auditContext.SaveChanges();
+        await _auditContext.AddAsync(coverAudit);
+        await _auditContext.SaveChangesAsync();
     }
 }

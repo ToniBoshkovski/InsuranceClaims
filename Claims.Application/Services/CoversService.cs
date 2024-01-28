@@ -3,78 +3,66 @@ using Claims.Application.Services.Interfaces;
 
 namespace Claims.Application.Services;
 
-public class CoversService : ICoversService
+public class CoversService(ICosmosDbService cosmosDbService, IAuditer auditer) : ICoversService
 {
-    private readonly ICosmosDbService _cosmosDbService;
-    private readonly IAuditer _auditer;
+    private readonly ICosmosDbService _cosmosDbService = cosmosDbService;
+    private readonly IAuditer _auditer = auditer;
 
-    public CoversService(ICosmosDbService cosmosDbService, IAuditer auditer)
-    {
-        _cosmosDbService = cosmosDbService;
-        _auditer = auditer;
-    }
+    public decimal ComputePremium(DateOnly startDate, DateOnly endDate, CoverType coverType) => ComputePremiumInternal(startDate, endDate, coverType);
 
-    public async Task<decimal> ComputePremiumAsync(DateOnly startDate, DateOnly endDate, CoverType coverType)
-    {
-        return ComputePremium(startDate, endDate, coverType);
-    }
+    public async Task<IEnumerable<Cover>> GetAsync() => await _cosmosDbService.GetAsync<Cover>();
 
-    public async Task<IEnumerable<Cover>> GetAsync()
-    {
-        return await _cosmosDbService.GetAsync<Cover>();
-    }
-
-    public async Task<Cover> GetAsync(string id)
-    {
-        return await _cosmosDbService.GetAsync<Cover>(id);
-    }
+    public async Task<Cover> GetAsync(string id) => await _cosmosDbService.GetAsync<Cover>(id);
 
     public async Task<Cover> CreateAsync(Cover cover)
     {
         cover.Id = Guid.NewGuid().ToString();
-        cover.Premium = ComputePremium(cover.StartDate, cover.EndDate, cover.Type);
+        cover.Premium = ComputePremiumInternal(cover.StartDate, cover.EndDate, cover.Type);
         await _cosmosDbService.AddItemAsync(cover);
-        _auditer.AuditClaim(cover.Id, "POST");
+        await _auditer.AuditClaim(cover.Id, "POST");
         return cover;
     }
 
-    public Task DeleteAsync(string id)
+    public async Task DeleteAsync(string id)
     {
-        _auditer.AuditCover(id, "DELETE");
-        return _cosmosDbService.DeleteItemAsync<Cover>(id);
+        await _auditer.AuditCover(id, "DELETE");
+        await _cosmosDbService.DeleteItemAsync<Cover>(id);
     }
 
-    private decimal ComputePremium(DateOnly startDate, DateOnly endDate, CoverType coverType)
+    private static decimal ComputePremiumInternal(DateOnly startDate, DateOnly endDate, CoverType coverType)
     {
-        var multiplier = 1.3m;
-        if (coverType == CoverType.Yacht)
+        var baseDayRate = 1250m;
+        var multiplier = coverType switch
         {
-            multiplier = 1.1m;
-        }
+            CoverType.Yacht => 1.1m,
+            CoverType.PassengerShip => 1.2m,
+            CoverType.Tanker => 1.5m,
+            _ => 1.3m
+        };
 
-        if (coverType == CoverType.PassengerShip)
-        {
-            multiplier = 1.2m;
-        }
-
-        if (coverType == CoverType.Tanker)
-        {
-            multiplier = 1.5m;
-        }
-
-        var premiumPerDay = 1250 * multiplier;
+        var premiumPerDay = baseDayRate * multiplier;
         var insuranceLength = endDate.DayNumber - startDate.DayNumber;
         var totalPremium = 0m;
 
         for (var i = 0; i < insuranceLength; i++)
         {
-            if (i < 30) totalPremium += premiumPerDay;
-            if (i < 180 && coverType == CoverType.Yacht) totalPremium += premiumPerDay - premiumPerDay * 0.05m;
-            else if (i < 180) totalPremium += premiumPerDay - premiumPerDay * 0.02m;
-            if (i < 365 && coverType != CoverType.Yacht) totalPremium += premiumPerDay - premiumPerDay * 0.03m;
-            else if (i < 365) totalPremium += premiumPerDay - premiumPerDay * 0.08m;
+            if (i < 30)
+            {
+                totalPremium += premiumPerDay;
+            }
+            else if (i < 180)
+            {
+                totalPremium += ApplyDiscount(premiumPerDay, coverType, 0.05m, 0.02m);
+            }
+            else if (i < 365)
+            {
+                totalPremium += ApplyDiscount(premiumPerDay, coverType, 0.03m, 0.01m);
+            }
         }
 
         return totalPremium;
     }
+
+    private static decimal ApplyDiscount(decimal premiumPerDay, CoverType type, decimal yachtDiscount, decimal othersDiscount)
+        => premiumPerDay - premiumPerDay * (type == CoverType.Yacht ? yachtDiscount : othersDiscount);
 }

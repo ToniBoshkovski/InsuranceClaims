@@ -2,7 +2,7 @@
 
 public interface ICoversService
 {
-    Task<decimal> ComputePremiumAsync(DateOnly startDate, DateOnly endDate, CoverType coverType);
+    decimal ComputePremium(DateOnly startDate, DateOnly endDate, CoverType coverType);
 
     Task<IEnumerable<Cover>> GetAsync();
 

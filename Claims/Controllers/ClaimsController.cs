@@ -14,30 +14,26 @@ public class ClaimsController(IClaimsServices claimsServices, IValidator<Claim> 
     private readonly IValidator<Claim> _validator = validator;
 
     [HttpGet]
-    public async Task<IEnumerable<Claim>> GetAsync()
-    {
-        return await _claimsServices.GetAsync();
-    }
+    public async Task<IActionResult> GetAsync()
+        => Ok(await _claimsServices.GetAsync());
 
     [HttpGet("{id}")]
-    public Task<Claim> GetAsync(string id)
-    {
-        return _claimsServices.GetAsync(id);
-    }
+    public async Task<IActionResult> GetAsync(string id)
+        => Ok(await _claimsServices.GetAsync(id));
 
     [HttpPost]
-    public async Task<ActionResult> CreateAsync(Claim claim)
+    public async Task<IActionResult> CreateAsync(Claim claim)
     {
         ValidationResult result = await _validator.ValidateAsync(claim);
         if (!result.IsValid) return BadRequest(result.CreateValidationErrorsResponse());
 
-        var newClaim = _claimsServices.CreateAsync(claim);
-        return Ok(newClaim);
+        return Ok(await _claimsServices.CreateAsync(claim));
     }
 
     [HttpDelete("{id}")]
-    public Task DeleteAsync(string id)
+    public async Task<IActionResult> DeleteAsync(string id)
     {
-        return _claimsServices.DeleteAsync(id);
+        await _claimsServices.DeleteAsync(id);
+        return Ok();
     }
 }

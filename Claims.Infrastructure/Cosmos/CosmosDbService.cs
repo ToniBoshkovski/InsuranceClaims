@@ -22,7 +22,6 @@ public class CosmosDbService : ICosmosDbService
         while (query.HasMoreResults)
         {
             var response = await query.ReadNextAsync();
-
             results.AddRange(response.ToList());
         }
         return results;
@@ -30,29 +29,13 @@ public class CosmosDbService : ICosmosDbService
 
     public async Task<T> GetAsync<T>(string id)
     {
-        try
-        {
-            var response = await _container.ReadItemAsync<T>(id, new(id));
-            return response.Resource;
-        }
-        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-        {
-            return default;
-        }
+        var response = await _container.ReadItemAsync<T>(id, new(id));
+        return response.Resource;
     }
 
-    public Task AddItemAsync(Claim item)
-    {
-        return _container.CreateItemAsync(item, new(item.Id));
-    }
+    public async Task AddItemAsync(Claim item) => await _container.CreateItemAsync(item, new(item.Id));
 
-    public Task AddItemAsync(Cover item)
-    {
-        return _container.CreateItemAsync(item, new(item.Id));
-    }
+    public async Task AddItemAsync(Cover item) => await _container.CreateItemAsync(item, new(item.Id));
 
-    public Task DeleteItemAsync<T>(string id)
-    {
-        return _container.DeleteItemAsync<T>(id, new(id));
-    }
+    public async Task DeleteItemAsync<T>(string id) => await _container.DeleteItemAsync<T>(id, new(id));
 }
