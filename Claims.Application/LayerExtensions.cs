@@ -11,9 +11,11 @@ public static class LayerExtensions
 {
     public static void AddApplicationLayer(this IServiceCollection services, IConfiguration configuration)
     {
+        // services
         services.AddScoped<IClaimsServices, ClaimsServices>();
         services.AddScoped<ICoversService, CoversService>();
 
+        // validators
         services.AddScoped<IValidator<Claim>, ClaimValidator>();
         services.AddScoped<IValidator<Cover>, CoverValidator>();
     }
