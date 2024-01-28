@@ -1,9 +1,9 @@
-using System.Configuration;
-using System.Text.Json.Serialization;
-using Claims.Auditing;
-using Claims.Controllers;
+using Claims.Application;
+using Claims.Infrastructure;
+using Claims.Infrastructure.Auditing;
+using Claims.Infrastructure.Cosmos;
 using Microsoft.EntityFrameworkCore;
-
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +15,9 @@ builder.Services.AddControllers().AddJsonOptions(x =>
 );
 
 builder.Services.AddSingleton(
-    InitializeCosmosClientInstanceAsync(builder.Configuration.GetSection("CosmosDb")).GetAwaiter().GetResult());
+    CosmosDbInitializer.InitializeCosmosClientInstanceAsync(builder.Configuration.GetSection("CosmosDb")).GetAwaiter().GetResult());
+builder.Services.AddApplicationLayer(builder.Configuration);
+builder.Services.AddInfrastructureLayer(builder.Configuration);
 
 builder.Services.AddDbContext<AuditContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -46,18 +48,5 @@ using (var scope = app.Services.CreateScope())
 
 app.Run();
 
-static async Task<CosmosDbService> InitializeCosmosClientInstanceAsync(IConfigurationSection configurationSection)
-{
-    string databaseName = configurationSection.GetSection("DatabaseName").Value;
-    string containerName = configurationSection.GetSection("ContainerName").Value;
-    string account = configurationSection.GetSection("Account").Value;
-    string key = configurationSection.GetSection("Key").Value;
-    Microsoft.Azure.Cosmos.CosmosClient client = new Microsoft.Azure.Cosmos.CosmosClient(account, key);
-    CosmosDbService cosmosDbService = new CosmosDbService(client, databaseName, containerName);
-    Microsoft.Azure.Cosmos.DatabaseResponse database = await client.CreateDatabaseIfNotExistsAsync(databaseName);
-    await database.Database.CreateContainerIfNotExistsAsync(containerName, "/id");
-
-    return cosmosDbService;
-}
-
-public partial class Program { }
+public partial class Program
+{ }
