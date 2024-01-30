@@ -1,4 +1,4 @@
-﻿using Claims.API.Exceptions;
+﻿using Claims.Application.Models.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;

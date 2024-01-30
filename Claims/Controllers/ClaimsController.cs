@@ -1,4 +1,5 @@
 using Claims.API.Exceptions;
+using Claims.Application.Dtos;
 using Claims.Application.Services.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
@@ -11,10 +12,10 @@ namespace Claims.Controllers;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-public class ClaimsController(IClaimsServices claimsServices, IValidator<Claim> validator) : ControllerBase
+public class ClaimsController(IClaimsServices claimsServices, IValidator<ClaimDto> validator) : ControllerBase
 {
     private readonly IClaimsServices _claimsServices = claimsServices;
-    private readonly IValidator<Claim> _validator = validator;
+    private readonly IValidator<ClaimDto> _validator = validator;
 
     /// <summary>
     /// Get all claims
@@ -35,15 +36,15 @@ public class ClaimsController(IClaimsServices claimsServices, IValidator<Claim> 
     /// <summary>
     /// Create new claim
     /// </summary>
-    /// <param name="claim"></param>
+    /// <param name="claimDto"></param>
     /// <returns></returns>
     [HttpPost]
-    public async Task<IActionResult> CreateAsync(Claim claim)
+    public async Task<IActionResult> CreateAsync(ClaimDto claimDto)
     {
-        ValidationResult result = await _validator.ValidateAsync(claim);
+        ValidationResult result = await _validator.ValidateAsync(claimDto);
         if (!result.IsValid) return BadRequest(result.CreateValidationErrorsResponse());
 
-        return Ok(await _claimsServices.CreateAsync(claim));
+        return Ok(await _claimsServices.CreateAsync(claimDto));
     }
 
     /// <summary>

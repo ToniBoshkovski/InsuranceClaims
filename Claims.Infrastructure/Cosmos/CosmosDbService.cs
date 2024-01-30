@@ -1,4 +1,5 @@
 ﻿using Claims.Application.Interfaces;
+using Claims.Application.Models;
 using Microsoft.Azure.Cosmos;
 
 namespace Claims.Infrastructure.Cosmos;
@@ -11,13 +12,13 @@ public class CosmosDbService : ICosmosDbService
         string databaseName,
         string containerName)
     {
-        if (dbClient == null) throw new ArgumentNullException(nameof(dbClient));
+        ArgumentNullException.ThrowIfNull(dbClient);
         _container = dbClient.GetContainer(databaseName, containerName);
     }
 
     public async Task<IEnumerable<T>> GetAsync<T>()
     {
-        var query = _container.GetItemQueryIterator<T>(new QueryDefinition("SELECT * FROM c"));
+        var query = _container.GetItemQueryIterator<T>(new QueryDefinition($"SELECT * FROM c WHERE c.itemType = '{typeof(T).Name}'"));
         var results = new List<T>();
         while (query.HasMoreResults)
         {
@@ -27,10 +28,17 @@ public class CosmosDbService : ICosmosDbService
         return results;
     }
 
-    public async Task<T> GetAsync<T>(string id)
+    public async Task<T?> GetAsync<T>(string id)
     {
-        var response = await _container.ReadItemAsync<T>(id, new(id));
-        return response.Resource;
+        try
+        {
+            var response = await _container.ReadItemAsync<T>(id, new(id));
+            return response.Resource;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return default;
+        }
     }
 
     public async Task AddItemAsync(Claim item) => await _container.CreateItemAsync(item, new(item.Id));

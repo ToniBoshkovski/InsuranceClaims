@@ -1,4 +1,7 @@
-﻿namespace Claims.Application.Services.Interfaces;
+﻿using Claims.Application.Dtos;
+using Claims.Application.Models;
+
+namespace Claims.Application.Services.Interfaces;
 
 public interface IClaimsServices
 {
@@ -6,7 +9,7 @@ public interface IClaimsServices
 
     Task<Claim> GetAsync(string id);
 
-    Task<Claim> CreateAsync(Claim claim);
+    Task<Claim> CreateAsync(ClaimDto claimDto);
 
     Task DeleteAsync(string id);
 }

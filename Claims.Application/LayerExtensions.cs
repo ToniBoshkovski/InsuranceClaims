@@ -1,4 +1,5 @@
-﻿using Claims.Application.Services;
+﻿using Claims.Application.Dtos;
+using Claims.Application.Services;
 using Claims.Application.Services.Interfaces;
 using Claims.Application.Validators;
 using FluentValidation;
@@ -16,7 +17,7 @@ public static class LayerExtensions
         services.AddScoped<ICoversService, CoversService>();
 
         // validators
-        services.AddScoped<IValidator<Claim>, ClaimValidator>();
-        services.AddScoped<IValidator<Cover>, CoverValidator>();
+        services.AddScoped<IValidator<ClaimDto>, ClaimValidator>();
+        services.AddScoped<IValidator<CoverDto>, CoverValidator>();
     }
 }

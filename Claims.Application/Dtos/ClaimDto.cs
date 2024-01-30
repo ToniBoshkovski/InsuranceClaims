@@ -1,12 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using Claims.Application.Enums;
+using Newtonsoft.Json;
 
-namespace Claims;
+namespace Claims.Application.Dtos;
 
-public class Claim
+public class ClaimDto
 {
-    [JsonProperty(PropertyName = "id")]
-    public string Id { get; set; }
-
     [JsonProperty(PropertyName = "coverId")]
     public string CoverId { get; set; }
 
@@ -21,12 +19,4 @@ public class Claim
 
     [JsonProperty(PropertyName = "damageCost")]
     public decimal DamageCost { get; set; }
-}
-
-public enum ClaimType
-{
-    Collision = 0,
-    Grounding = 1,
-    BadWeather = 2,
-    Fire = 3
 }

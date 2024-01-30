@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Claims.API", "Claims\Claims
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Claims.Tests", "Claims.Tests\Claims.Tests.csproj", "{EC846D1B-22B5-4CED-B0CB-778EBFEE1C33}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Claims.Domain", "Claims.Domain\Claims.Domain.csproj", "{86ED498F-B33C-478E-8D88-8DB32323954B}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Claims.Application", "Claims.Application\Claims.Application.csproj", "{8111CB9F-64EB-4935-AD5D-B44675195874}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Claims.Infrastructure", "Claims.Infrastructure\Claims.Infrastructure.csproj", "{21FCF772-4C0D-4A73-9A54-8CA17167FBC2}"
@@ -27,10 +25,6 @@ Global
 		{EC846D1B-22B5-4CED-B0CB-778EBFEE1C33}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC846D1B-22B5-4CED-B0CB-778EBFEE1C33}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC846D1B-22B5-4CED-B0CB-778EBFEE1C33}.Release|Any CPU.Build.0 = Release|Any CPU
-		{86ED498F-B33C-478E-8D88-8DB32323954B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{86ED498F-B33C-478E-8D88-8DB32323954B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{86ED498F-B33C-478E-8D88-8DB32323954B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{86ED498F-B33C-478E-8D88-8DB32323954B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8111CB9F-64EB-4935-AD5D-B44675195874}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8111CB9F-64EB-4935-AD5D-B44675195874}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8111CB9F-64EB-4935-AD5D-B44675195874}.Release|Any CPU.ActiveCfg = Release|Any CPU

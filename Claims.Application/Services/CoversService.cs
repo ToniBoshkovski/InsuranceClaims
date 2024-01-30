@@ -1,5 +1,9 @@
-﻿using Claims.Application.Interfaces;
+﻿using Claims.Application.Dtos;
+using Claims.Application.Enums;
+using Claims.Application.Interfaces;
+using Claims.Application.Models;
 using Claims.Application.Services.Interfaces;
+using System.Security.Claims;
 
 namespace Claims.Application.Services;
 
@@ -14,9 +18,11 @@ public class CoversService(ICosmosDbService cosmosDbService, IAuditer auditer) :
 
     public async Task<Cover> GetAsync(string id) => await _cosmosDbService.GetAsync<Cover>(id);
 
-    public async Task<Cover> CreateAsync(Cover cover)
+    public async Task<Cover> CreateAsync(CoverDto coverDto)
     {
+        Cover cover = Cover.MapToCover(coverDto);
         cover.Id = Guid.NewGuid().ToString();
+        cover.ItemType = "Cover";
         cover.Premium = ComputePremiumInternal(cover.StartDate, cover.EndDate, cover.Type);
         await _cosmosDbService.AddItemAsync(cover);
         await _auditer.AuditClaim(cover.Id, "POST");

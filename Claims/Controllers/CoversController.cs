@@ -1,4 +1,9 @@
+using Claims.API.Exceptions;
+using Claims.Application.Dtos;
+using Claims.Application.Enums;
 using Claims.Application.Services.Interfaces;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Claims.Controllers;
@@ -8,9 +13,10 @@ namespace Claims.Controllers;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-public class CoversController(ICoversService coversService) : ControllerBase
+public class CoversController(ICoversService coversService, IValidator<CoverDto> validator) : ControllerBase
 {
     private readonly ICoversService _coversService = coversService;
+    private readonly IValidator<CoverDto> _validator = validator;
 
     /// <summary>
     /// Compute Premium For Covers
@@ -19,7 +25,7 @@ public class CoversController(ICoversService coversService) : ControllerBase
     /// <param name="endDate"></param>
     /// <param name="coverType"></param>
     /// <returns></returns>
-    [HttpGet]
+    [HttpGet("computer-premium")]
     public IActionResult ComputePremium(DateOnly startDate, DateOnly endDate, CoverType coverType)
         => Ok(_coversService.ComputePremium(startDate, endDate, coverType));
 
@@ -42,11 +48,16 @@ public class CoversController(ICoversService coversService) : ControllerBase
     /// <summary>
     /// Create new cover
     /// </summary>
-    /// <param name="cover"></param>
+    /// <param name="coverDto"></param>
     /// <returns></returns>
     [HttpPost]
-    public async Task<IActionResult> CreateAsync(Cover cover)
-        => Ok(await _coversService.CreateAsync(cover));
+    public async Task<IActionResult> CreateAsync(CoverDto coverDto)
+    {
+        ValidationResult result = await _validator.ValidateAsync(coverDto);
+        if (!result.IsValid) return BadRequest(result.CreateValidationErrorsResponse());
+
+        return Ok(await _coversService.CreateAsync(coverDto));
+    }
 
     /// <summary>
     /// Delete cover

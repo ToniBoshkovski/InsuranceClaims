@@ -1,4 +1,4 @@
-﻿namespace Claims.API.Exceptions;
+﻿namespace Claims.Application.Models.Exceptions;
 
 public class BadRequestException : Exception
 {

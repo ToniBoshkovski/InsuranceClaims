@@ -1,4 +1,8 @@
-﻿namespace Claims.Application.Services.Interfaces;
+﻿using Claims.Application.Dtos;
+using Claims.Application.Enums;
+using Claims.Application.Models;
+
+namespace Claims.Application.Services.Interfaces;
 
 public interface ICoversService
 {
@@ -8,7 +12,7 @@ public interface ICoversService
 
     Task<Cover> GetAsync(string id);
 
-    Task<Cover> CreateAsync(Cover cover);
+    Task<Cover> CreateAsync(CoverDto coverDto);
 
     Task DeleteAsync(string id);
 }
