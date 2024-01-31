@@ -2,6 +2,7 @@ using Claims.API;
 using Claims.Application;
 using Claims.Infrastructure;
 using Claims.Infrastructure.Auditing;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -22,6 +23,9 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddDbContext<AuditContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddHangfire(config => config.UseSqlServerStorage(builder.Configuration.GetConnectionString("HangfireConnection")));
+builder.Services.AddHangfireServer();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -35,12 +39,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseHangfireDashboard();
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.UseExceptionHandler();
-//ervices.AddExceptionHandler(options => { ... })
 
 app.MapControllers();
 

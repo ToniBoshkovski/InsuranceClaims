@@ -3,14 +3,15 @@ using Claims.Application.Enums;
 using Claims.Application.Interfaces;
 using Claims.Application.Models;
 using Claims.Application.Services.Interfaces;
-using System.Security.Claims;
+using Hangfire;
 
 namespace Claims.Application.Services;
 
-public class CoversService(ICosmosDbService cosmosDbService, IAuditer auditer) : ICoversService
+public class CoversService(ICosmosDbService cosmosDbService, IAuditer auditer, IBackgroundJobClient jobClient) : ICoversService
 {
     private readonly ICosmosDbService _cosmosDbService = cosmosDbService;
     private readonly IAuditer _auditer = auditer;
+    private readonly IBackgroundJobClient _jobClient = jobClient;
 
     public decimal ComputePremium(DateOnly startDate, DateOnly endDate, CoverType coverType) => ComputePremiumInternal(startDate, endDate, coverType);
 
@@ -25,14 +26,16 @@ public class CoversService(ICosmosDbService cosmosDbService, IAuditer auditer) :
         cover.ItemType = "Cover";
         cover.Premium = ComputePremiumInternal(cover.StartDate, cover.EndDate, cover.Type);
         await _cosmosDbService.AddItemAsync(cover);
-        await _auditer.AuditClaim(cover.Id, "POST");
+
+        _jobClient.Enqueue(() => _auditer.AuditClaim(cover.Id, "POST"));
+
         return cover;
     }
 
     public async Task DeleteAsync(string id)
     {
-        await _auditer.AuditCover(id, "DELETE");
         await _cosmosDbService.DeleteItemAsync<Cover>(id);
+        _jobClient.Enqueue(() => _auditer.AuditCover(id, "DELETE"));
     }
 
     private static decimal ComputePremiumInternal(DateOnly startDate, DateOnly endDate, CoverType coverType)
