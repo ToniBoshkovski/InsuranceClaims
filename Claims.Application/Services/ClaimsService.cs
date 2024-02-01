@@ -1,12 +1,13 @@
 ﻿using Claims.Application.Dtos;
 using Claims.Application.Interfaces;
 using Claims.Application.Models;
+using Claims.Application.Models.Exceptions;
 using Claims.Application.Services.Interfaces;
 using Hangfire;
 
 namespace Claims.Application.Services;
 
-public class ClaimsServices(ICosmosDbService cosmosDbService, IAuditer auditer, IBackgroundJobClient jobClient) : IClaimsServices
+public class ClaimsService(ICosmosDbService cosmosDbService, IAuditer auditer, IBackgroundJobClient jobClient) : IClaimsServices
 {
     private readonly ICosmosDbService _cosmosDbService = cosmosDbService;
     private readonly IAuditer _auditer = auditer;
@@ -14,7 +15,7 @@ public class ClaimsServices(ICosmosDbService cosmosDbService, IAuditer auditer, 
 
     public async Task<IEnumerable<Claim>> GetAsync() => await _cosmosDbService.GetAsync<Claim>();
 
-    public async Task<Claim> GetAsync(string id) => await _cosmosDbService.GetAsync<Claim>(id);
+    public async Task<Claim> GetAsync(string id) => await _cosmosDbService.GetAsync<Claim>(id) ?? throw new NotFoundException("Claim with that id not found");
 
     public async Task<Claim> CreateAsync(ClaimDto claimDto)
     {
@@ -23,7 +24,7 @@ public class ClaimsServices(ICosmosDbService cosmosDbService, IAuditer auditer, 
         claim.ItemType = "Claim";
         await _cosmosDbService.AddItemAsync(claim);
 
-        _jobClient.Enqueue(() => _auditer.AuditClaim(claim.Id, "POST"));
+        _jobClient.Enqueue(() => AuditClaim(claim.Id, "POST"));
 
         return claim;
     }
@@ -31,6 +32,8 @@ public class ClaimsServices(ICosmosDbService cosmosDbService, IAuditer auditer, 
     public async Task DeleteAsync(string id)
     {
         await _cosmosDbService.DeleteItemAsync<Claim>(id);
-        _jobClient.Enqueue(() => _auditer.AuditClaim(id, "DELETE"));
+        _jobClient.Enqueue(() => AuditClaim(id, "DELETE"));
     }
+
+    public async Task AuditClaim(string id, string requestType) => await _auditer.AuditClaim(id, requestType);
 }

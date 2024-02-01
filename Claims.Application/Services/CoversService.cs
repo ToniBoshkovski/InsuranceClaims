@@ -2,6 +2,7 @@
 using Claims.Application.Enums;
 using Claims.Application.Interfaces;
 using Claims.Application.Models;
+using Claims.Application.Models.Exceptions;
 using Claims.Application.Services.Interfaces;
 using Hangfire;
 
@@ -17,7 +18,7 @@ public class CoversService(ICosmosDbService cosmosDbService, IAuditer auditer, I
 
     public async Task<IEnumerable<Cover>> GetAsync() => await _cosmosDbService.GetAsync<Cover>();
 
-    public async Task<Cover> GetAsync(string id) => await _cosmosDbService.GetAsync<Cover>(id);
+    public async Task<Cover> GetAsync(string id) => await _cosmosDbService.GetAsync<Cover>(id) ?? throw new NotFoundException("Cover with that id not found");
 
     public async Task<Cover> CreateAsync(CoverDto coverDto)
     {
@@ -27,7 +28,7 @@ public class CoversService(ICosmosDbService cosmosDbService, IAuditer auditer, I
         cover.Premium = ComputePremiumInternal(cover.StartDate, cover.EndDate, cover.Type);
         await _cosmosDbService.AddItemAsync(cover);
 
-        _jobClient.Enqueue(() => _auditer.AuditClaim(cover.Id, "POST"));
+        _jobClient.Enqueue(() => AuditCover(cover.Id, "POST"));
 
         return cover;
     }
@@ -35,8 +36,10 @@ public class CoversService(ICosmosDbService cosmosDbService, IAuditer auditer, I
     public async Task DeleteAsync(string id)
     {
         await _cosmosDbService.DeleteItemAsync<Cover>(id);
-        _jobClient.Enqueue(() => _auditer.AuditCover(id, "DELETE"));
+        _jobClient.Enqueue(() => AuditCover(id, "DELETE"));
     }
+
+    public async Task AuditCover(string id, string requestType) => await _auditer.AuditCover(id, requestType);
 
     private static decimal ComputePremiumInternal(DateOnly startDate, DateOnly endDate, CoverType coverType)
     {
@@ -61,17 +64,17 @@ public class CoversService(ICosmosDbService cosmosDbService, IAuditer auditer, I
             }
             else if (i < 180)
             {
-                totalPremium += ApplyDiscount(premiumPerDay, coverType, 0.05m, 0.02m);
+                totalPremium += AddDiscount(premiumPerDay, coverType, 0.05m, 0.02m);
             }
             else if (i < 365)
             {
-                totalPremium += ApplyDiscount(premiumPerDay, coverType, 0.03m, 0.01m);
+                totalPremium += AddDiscount(premiumPerDay, coverType, 0.03m, 0.01m);
             }
         }
 
         return totalPremium;
     }
 
-    private static decimal ApplyDiscount(decimal premiumPerDay, CoverType type, decimal yachtDiscount, decimal othersDiscount)
+    private static decimal AddDiscount(decimal premiumPerDay, CoverType type, decimal yachtDiscount, decimal othersDiscount)
         => premiumPerDay - premiumPerDay * (type == CoverType.Yacht ? yachtDiscount : othersDiscount);
 }

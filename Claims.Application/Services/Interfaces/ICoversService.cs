@@ -15,4 +15,6 @@ public interface ICoversService
     Task<Cover> CreateAsync(CoverDto coverDto);
 
     Task DeleteAsync(string id);
+
+    Task AuditCover(string id, string requestType);
 }

@@ -13,7 +13,7 @@ public static class LayerExtensions
     public static void AddApplicationLayer(this IServiceCollection services, IConfiguration configuration)
     {
         // services
-        services.AddScoped<IClaimsServices, ClaimsServices>();
+        services.AddScoped<IClaimsServices, ClaimsService>();
         services.AddScoped<ICoversService, CoversService>();
 
         // validators

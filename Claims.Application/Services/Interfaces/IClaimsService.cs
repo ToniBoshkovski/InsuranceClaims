@@ -12,4 +12,6 @@ public interface IClaimsServices
     Task<Claim> CreateAsync(ClaimDto claimDto);
 
     Task DeleteAsync(string id);
+
+    Task AuditClaim(string id, string requestType);
 }

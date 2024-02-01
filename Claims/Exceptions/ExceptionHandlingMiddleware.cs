@@ -5,14 +5,12 @@ using System.Net;
 
 namespace Claims.API;
 
-public class GlobalExceptionHandler : IExceptionHandler
+/// <summary>
+/// Global exception handler for handling and logging exceptions in the application.
+/// </summary>
+public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
-    private readonly ILogger<GlobalExceptionHandler> _logger;
-
-    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
-    {
-        _logger = logger;
-    }
+    private readonly ILogger<GlobalExceptionHandler> _logger = logger;
 
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
